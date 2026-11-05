@@ -3,6 +3,7 @@ const cors = require ('cors')
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator').default
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 
 const app = express()
 app.use(express.json())
@@ -74,6 +75,25 @@ app.post ('/signup', async (req, res) =>  {
         console.log(e)
         res.status(409).end()
     }
+})
+//POST http://localhost:3000/login
+app.post ('/login', async (req, res) => {
+    const login = req.body.login
+    const password = req.body.password
+    const usuario = await Usuario.findOne({login: login})
+    if (!usuario) {
+        return res.status(401).json({mensagem: "Usuário inválido"})
+    }
+    const senhaValida = await bcrypt.compare(password, usuario.password)
+    if (!senhaValida) {
+        return res.status(401).json({mensagem: "Senha inválida"})
+    }
+    const token = jwt.sign(
+        {login: login},
+        "chave",
+        {expiresIn: "1h"}
+    )
+    res.status(200).json({token: token})
 })
 
 app.listen(3000, async() => {
