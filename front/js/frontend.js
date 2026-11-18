@@ -95,9 +95,55 @@ const fazerLogin = async () => {
     let usuarioLogin = usuarioLoginInput.value
     let passwordLogin = passwordLoginInput.value
     if (usuarioLogin && passwordLogin) {
-        //chama o back com try catch
+        try {
+            const loginEndpoint = '/login'
+            const URLCompleta = `${protocolo}${baseURL}${loginEndpoint}`
+            const response = await axios.post (URLCompleta, 
+                {login: usuarioLogin, password: passwordLogin}
+            )
+            localStorage.setItem('token', response.data.token)
+            usuarioLoginInput.value = ""
+            passwordLoginInput.value = ""
+            exibeAlerta ('.alert-modal-login', "Login realizado com sucesso!", ['show', 'alert-success'], ['d-none', 'alert-danger'], 2000)
+            escondeModal('#modalLogin')
+            prepararPagina()
+        }
+        catch (e) {
+            exibeAlerta ('.alert-modal-login', "Falha no login", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
+        }
     }
     else {
         exibeAlerta ('.alert-modal-login', "Preencha todos os campos", ['show', 'alert-danger'], ['d-none', 'alert-success'], 2000)
     }
+}
+function prepararPagina () {
+    const token = localStorage.getItem('token')
+    const cadastrarFilmeButton = document.querySelector('#cadastrarFilmeButton')
+    const novoUsuarioLink = document.querySelector('#novoUsuarioLink')
+    const loginLink = document.querySelector('#loginLink')
+    if (token) {
+        cadastrarFilmeButton.disabled = false
+        loginLink.innerHTML = "Logout"
+        novoUsuarioLink.classList.add('d-none')
+    }
+    else {
+        cadastrarFilmeButton.disabled = true
+        loginLink.innerHTML = "Login"
+        novoUsuarioLink.classList.remove('d-none')
+    }
+}
+function tratarLoginLogout () {
+    const token = localStorage.getItem('token')
+    if (token) {
+        fazerLogout()
+    }
+    else {
+        const modalLogin = bootstrap.Modal.getOrCreateInstance ('#modalLogin')
+        modalLogin.show()
+    }
+}
+function fazerLogout() {
+    localStorage.removeItem('token')
+    prepararPagina()
+    exibeAlerta('.alert-cadastro-filme', 'Logout realizado com sucesso', ['show', 'alert-success'], ['d-none', 'alert-danger'],2000)
 }
